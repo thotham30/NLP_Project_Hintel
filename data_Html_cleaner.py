@@ -1,8 +1,8 @@
 import os
 import re
 
-source_base_dir = 'Statistical-Machine-Translation-Hindi-Telugu-\data_lang_cleaned'  # Replace with the actual path to your data folder
-destination_base_dir = 'Statistical-Machine-Translation-Hindi-Telugu-\data_Html_cleaned'  # Replace with the actual path to your data-bg-cleaned folder
+source_base_dir = 'data_lang_cleaned'  # Replace with the actual path to your data folder
+destination_base_dir = 'data_Html_cleaned'  # Replace with the actual path to your data-bg-cleaned folder
 
 rtl_embed = '\u202B'
 pop_directional_formatting = '\u202C'
