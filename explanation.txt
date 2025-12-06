@@ -1,0 +1,63 @@
+
+1. Data Alignment :
+      The data_alignment step aligns Hindi and Telugu subtitle sentences so that each line in Hindi matches its correct Telugu translation
+
+      It ensures both languages have parallel, sentence-by-sentence pairs for later processing like tokenization or similarity scoring.
+
+steps :
+  1. Load Subtitles 
+       Hindi and Telugu .srt files are read and parsed using parse_srt().
+  2. Time-Based Alignment 
+       Sentences are matched if their subtitle timestamps overlap by more than a threshold (e.g., 50%).
+       This ensures both sentences refer to the same moment in the video.
+  3. Length-Based Refinement
+       Among time-aligned pairs, remove mismatches where text lengths differ too much (e.g., one line is much longer than the other).
+  4. DTW (Dynamic Time Warping) Alignment
+       For remaining unaligned subtitles, DTW compares the length patterns of sentences
+       It “stretches or compresses” sequences to find the best matching pairs, even if timing doesn’t align perfectly.
+  5. Scoring and Final Selection
+      Each pair is given a score based on both time overlap and text-length similarity.
+      The best, non-redundant pairs (each subtitle used only once) are chosen.
+  6. Output
+      Hindi and Telugu aligned pairs are saved together in a .tsv file:
+
+
+2. Data Tokenization 
+   Convert aligned Hindi-Telugu sentence pairs into subword tokens for NLP tasks, using Byte-Pair Encoding (BPE).
+
+steps :
+ 1. Collect all sentences from data_aligned TSV files (Hindi and Telugu together).
+ 2. Train separate BPE tokenizers for Hindi and Telugu:
+      . Count word frequencies.
+      . Split words into characters initially.
+      . Iteratively merge the most frequent adjacent pairs until the vocabulary reaches the desired size.
+      . Store all merges for later tokenization.
+ 3. Tokenize each sentence using the trained merges:
+      . Frequent sequences become single tokens.
+      . Rare words stay split into smaller subwords.
+ 4. Save tokenized sentences into TSV files 
+
+
+3. Data similarity scoring 
+   After tokenizing, we have aligned Hindi-Telugu sentences.
+   The goal of data_similarity_scoring is to measure how similar each Hindi sentence is to its corresponding Telugu sentence.
+   This can help detect misalignments or low-quality translations.
+
+  1. Normalize text:
+      Remove extra spaces and diacritics from each sentence.
+  2. Extract features for similarity:
+     means converting into vector for next similarity score calculation 
+     . Character-level n-grams (1–3 chars).
+     . Structural n-grams (2–5 Unicode category codes, capturing the pattern of letters, spaces, punctuation).
+     . Length similarity (based on sentence lengths).
+  3. Calculate similarity scores for each Hindi-Telugu pair:
+     . Character similarity → cosine similarity of char n-gram TF-IDF vectors.
+     . Structural similarity → cosine similarity of structural n-gram TF-IDF vectors.
+     . Length similarity → 1 − relative difference in sentence lengths.
+     . Combine these with weights: 0.5 (char) + 0.3 (structure) + 0.2 (length).
+  4. Process tokenized files:
+     . Load each TSV file from data_tokenized.
+     . Compute similarity for each aligned sentence pair.
+     . Save results in a new TSV in data_similarity_scoring with columns:
+       Hindi    Telugu    Similarity_Score
+
